@@ -5,14 +5,14 @@
  */
 
 package dssToSqlitePlugin;
-import com.rma.io.DssFileManagerImpl;
 import com.rma.io.RmaFile;
-import hec.ensemble.Ensemble;
-import hec.ensemble.EnsembleTimeSeries;
-import hec.ensemble.TimeSeriesIdentifier;
+import hec.TimeSeriesStorage;
+import hec.collections.TimeSeriesCollection;
 import hec.heclib.dss.DSSPathname;
-import hec.io.DSSIdentifier;
-import hec.io.PairedDataContainer;
+import hec.timeseries.BlockedRegularIntervalTimeSeries;
+import hec.timeseries.TimeSeries;
+import hec.timeseries.TimeSeriesIdentifier;
+import hec.timeseries.storage.BlockedStorage;
 import hec2.model.DataLocation;
 import hec2.plugin.model.ComputeOptions;
 import hec2.plugin.selfcontained.SelfContainedPluginAlt;
@@ -127,6 +127,12 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
                 //convert the lifecycle dss file to a sqlite file!
                 hec.JdbcTimeSeriesDatabase dbase = new hec.JdbcTimeSeriesDatabase(outputPath, hec.JdbcTimeSeriesDatabase.CREATION_MODE.OPEN_EXISTING_UPDATE);
                 DSSPathname path = new DSSPathname(inputPath);
+                //determine relavent information from dss//
+                
+                
+                
+                TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier("THISISMYNAME",java.time.Duration.ofMinutes(1),java.time.Duration.ofMinutes(15),"UNITS");//name,interval,duration,units
+                TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
 //                    DSSIdentifier dssId = new DSSIdentifier(incomingPath, originalPDC.fullName);
 //                    String[] collPaths = DssFileManagerImpl.getDssFileManager().getCollectionList(dssId);
 //                    colSize = collPaths == null ? 0 : collPaths.length;
