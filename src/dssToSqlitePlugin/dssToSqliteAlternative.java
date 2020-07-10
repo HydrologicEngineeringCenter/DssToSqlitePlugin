@@ -12,6 +12,7 @@ import hec.collections.TimeSeriesCollection;
 import hec.heclib.dss.CondensedReference;
 import hec.heclib.dss.DSSPathname;
 import hec.heclib.dss.HecDSSDataAttributes;
+import hec.heclib.util.HecTime;
 import hec.io.DSSIdentifier;
 import hec.io.TimeSeriesContainer;
 import hec.timeseries.BlockedRegularIntervalTimeSeries;
@@ -26,6 +27,8 @@ import java.util.List;
 import org.jdom.Document;
 import org.jdom.Element;
 import hec2.wat.client.WatFrame;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -163,8 +166,14 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
                                 }
                                 if(exist){
                                     //copy over to sqlite
-                                    TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMillis(eventTsc.interval),java.time.Duration.ofMillis(eventTsc.numberValues * eventTsc.interval),eventTsc.units);//name,interval,duration,units
+                                    TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMillis(eventTsc.interval),java.time.Duration.ofMillis(eventTsc.interval),eventTsc.units);//name,interval,duration,units
                                     TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
+                                    HecTime t = null;
+                                    for(int i = 0; i<eventTsc.numberValues; i++){
+                                        t.set(eventTsc.times[i]);
+                                        ZonedDateTime zdt = ZonedDateTime.of(t.year(),t.month(),t.day(),t.hour(),t.minute(),t.minute(),t.second(),ZoneId.of("GMT-08:00"));
+                                        ts.addRow(zdt, eventTsc.values[i]);
+                                    }
                                     dbase.write(ts);
                                 }
                             }
