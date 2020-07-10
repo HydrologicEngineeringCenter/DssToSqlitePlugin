@@ -1,2 +1,5 @@
-# Forecast Generator
-This plugin will generate forecast ensembles to support testing of FIRO in HEC-WAT. The program is not meant to be a scientific approach to generating forecasts, but rather a mocked up tool to support further testing of the system prior to production.
+# dssToSqlitePlugin
+This plugin will take a lifecycle dss file (at the end of a lifecycle in wat) and convert it to sqlite.
+
+it leverages the timeseries branch of the firo-ensemble.jar
+
