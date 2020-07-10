@@ -5,10 +5,15 @@
  */
 
 package dssToSqlitePlugin;
+import com.rma.io.DssFileManagerImpl;
 import com.rma.io.RmaFile;
 import hec.TimeSeriesStorage;
 import hec.collections.TimeSeriesCollection;
+import hec.heclib.dss.CondensedReference;
 import hec.heclib.dss.DSSPathname;
+import hec.heclib.dss.HecDSSDataAttributes;
+import hec.io.DSSIdentifier;
+import hec.io.TimeSeriesContainer;
 import hec.timeseries.BlockedRegularIntervalTimeSeries;
 import hec.timeseries.TimeSeries;
 import hec.timeseries.TimeSeriesIdentifier;
@@ -21,6 +26,7 @@ import java.util.List;
 import org.jdom.Document;
 import org.jdom.Element;
 import hec2.wat.client.WatFrame;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -124,28 +130,47 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
                 return false;
             }
             try {
-                //convert the lifecycle dss file to a sqlite file!
-                hec.JdbcTimeSeriesDatabase dbase = new hec.JdbcTimeSeriesDatabase(outputPath, hec.JdbcTimeSeriesDatabase.CREATION_MODE.OPEN_EXISTING_UPDATE);
-                DSSPathname path = new DSSPathname(inputPath);
-                //determine relavent information from dss//
-                
-                
-                
-                TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier("THISISMYNAME",java.time.Duration.ofMinutes(1),java.time.Duration.ofMinutes(15),"UNITS");//name,interval,duration,units
-                TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
-//                    DSSIdentifier dssId = new DSSIdentifier(incomingPath, originalPDC.fullName);
-//                    String[] collPaths = DssFileManagerImpl.getDssFileManager().getCollectionList(dssId);
-//                    colSize = collPaths == null ? 0 : collPaths.length;
-//                    for (int i = 0; i < colSize; i++) {
-//                        dssId.setDSSPath(collPaths[i]);
-//                        PairedDataContainer Pdc = DssFileManagerImpl.getDssFileManager().readPairedDataContainer(dssId);
-//                        path.setCollectionSequence(collectionNumber);
-//                        collectionNumber++;
-//                        Pdc.fileName = originalPDC.fileName;
-//                        Pdc.fullName = path.getPathname();
-//                        DssFileManagerImpl.getDssFileManager().write(Pdc);
-//                    }
-                
+                //convert the lifecycle dss file to a sqlite file
+                try (hec.JdbcTimeSeriesDatabase dbase = new hec.JdbcTimeSeriesDatabase(outputPath, hec.JdbcTimeSeriesDatabase.CREATION_MODE.OPEN_EXISTING_UPDATE);){
+                    Vector<CondensedReference> paths = DssFileManagerImpl.getDssFileManager().getCondensedCatalog(inputPath);
+                    for(CondensedReference ref : paths){
+                        String[] subPaths = ref.getPathnameList();
+                        for(String sP : subPaths){
+                            DSSPathname subPath = new DSSPathname(sP);
+                            DSSIdentifier eventDss = new DSSIdentifier(inputPath,subPath.getPathname());
+                            //eventDss.setStartTime(_computeOptions.getRunTimeWindow().getStartTime());
+                            //eventDss.setEndTime(_computeOptions.getRunTimeWindow().getEndTime());
+                            int type = DssFileManagerImpl.getDssFileManager().getRecordType(eventDss);
+                            if((HecDSSDataAttributes.REGULAR_TIME_SERIES<=type && type < HecDSSDataAttributes.PAIRED)){
+                                boolean exist = DssFileManagerImpl.getDssFileManager().exists(eventDss);
+                                TimeSeriesContainer eventTsc = null;
+                                if (!exist )
+                                {
+                                    try
+                                    {
+                                        Thread.sleep(1000);//hey wait a second...
+                                    }
+                                    catch (InterruptedException e)
+                                    {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
+                                }
+                                eventTsc = DssFileManagerImpl.getDssFileManager().readTS(eventDss, true);
+                                if ( eventTsc != null )
+                                {
+                                    exist = eventTsc.numberValues > 0;
+                                }
+                                if(exist){
+                                    //copy over to sqlite
+                                    TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMillis(eventTsc.interval),java.time.Duration.ofMillis(eventTsc.numberValues * eventTsc.interval),eventTsc.units);//name,interval,duration,units
+                                    TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
+                                    dbase.write(ts);
+                                }
+                            }
+                        }
+                    } 
+                }
             } catch (Exception ex) {
                 Logger.getLogger(dssToSqliteAlternative.class.getName()).log(Level.SEVERE, null, ex);
             }
