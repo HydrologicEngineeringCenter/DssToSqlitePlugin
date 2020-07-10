@@ -118,7 +118,9 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
             String inputPath = wco.getDssFilename();//THIS IS A DSS FILE!
             String outputPath = changeExtensionAndName(wco.getDssFilename(),"db", "_sqlite");//need to change the name too "
             //this should only happen once per lifecycle at the end...
-            if(wco.getYearsInLifeCycle()== wco.getCurrentEventNumber()){
+            fr.addMessage("is " + wco.getEventList().size() + " equal to " + wco.getCurrentEventNumber() + "?");
+            
+            if(wco.getEventList().size()== wco.getCurrentEventNumber()){
                 //success! do it now (or wait and nothing bad will happen either...)
             }else{
                 fr.addMessage("This is not the last event " + wco.getCurrentEventNumber());
@@ -134,7 +136,7 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
             }
             try {
                 //convert the lifecycle dss file to a sqlite file
-                try (hec.JdbcTimeSeriesDatabase dbase = new hec.JdbcTimeSeriesDatabase(outputPath, hec.JdbcTimeSeriesDatabase.CREATION_MODE.OPEN_EXISTING_UPDATE);){
+                try (hec.JdbcTimeSeriesDatabase dbase = new hec.JdbcTimeSeriesDatabase(outputPath, hec.JdbcTimeSeriesDatabase.CREATION_MODE.CREATE_NEW_OR_OPEN_EXISTING_UPDATE);){
                     Vector<CondensedReference> paths = DssFileManagerImpl.getDssFileManager().getCondensedCatalog(inputPath);
                     for(CondensedReference ref : paths){
                         String[] subPaths = ref.getPathnameList();
@@ -168,7 +170,7 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
                                     //copy over to sqlite
                                     TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMillis(eventTsc.interval),java.time.Duration.ofMillis(eventTsc.interval),eventTsc.units);//name,interval,duration,units
                                     TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
-                                    HecTime t = null;
+                                    HecTime t = new HecTime();
                                     for(int i = 0; i<eventTsc.numberValues; i++){
                                         t.set(eventTsc.times[i]);
                                         ZonedDateTime zdt = ZonedDateTime.of(t.year(),t.month(),t.day(),t.hour(),t.minute(),t.minute(),t.second(),ZoneId.of("GMT-08:00"));
