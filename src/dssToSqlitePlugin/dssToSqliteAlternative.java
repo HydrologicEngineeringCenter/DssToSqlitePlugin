@@ -168,12 +168,12 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
                                 }
                                 if(exist){
                                     //copy over to sqlite
-                                    TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMillis(eventTsc.interval),java.time.Duration.ofMillis(eventTsc.interval),eventTsc.units);//name,interval,duration,units
+                                    TimeSeriesIdentifier ts_id = new TimeSeriesIdentifier(eventTsc.fullName,java.time.Duration.ofMinutes(eventTsc.interval),java.time.Duration.ofMinutes(eventTsc.interval),eventTsc.units);//name,interval,duration,units
                                     TimeSeries ts = new BlockedRegularIntervalTimeSeries(ts_id);
                                     HecTime t = new HecTime();
                                     for(int i = 0; i<eventTsc.numberValues; i++){
                                         t.set(eventTsc.times[i]);
-                                        ZonedDateTime zdt = ZonedDateTime.of(t.year(),t.month(),t.day(),t.hour(),t.minute(),t.minute(),t.second(),ZoneId.of("GMT-08:00"));
+                                        ZonedDateTime zdt = ZonedDateTime.of(t.year(),t.month(),t.day(),t.hour()-1,t.minute(),t.minute(),t.second(),ZoneId.of("GMT-08:00"));
                                         ts.addRow(zdt, eventTsc.values[i]);
                                     }
                                     dbase.write(ts);
