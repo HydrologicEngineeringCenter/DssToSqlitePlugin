@@ -7,8 +7,6 @@
 package dssToSqlitePlugin;
 import com.rma.io.DssFileManagerImpl;
 import com.rma.io.RmaFile;
-import hec.TimeSeriesStorage;
-import hec.collections.TimeSeriesCollection;
 import hec.heclib.dss.CondensedReference;
 import hec.heclib.dss.DSSPathname;
 import hec.heclib.dss.HecDSSDataAttributes;
@@ -18,7 +16,6 @@ import hec.io.TimeSeriesContainer;
 import hec.timeseries.BlockedRegularIntervalTimeSeries;
 import hec.timeseries.TimeSeries;
 import hec.timeseries.TimeSeriesIdentifier;
-import hec.timeseries.storage.BlockedStorage;
 import hec2.model.DataLocation;
 import hec2.plugin.model.ComputeOptions;
 import hec2.plugin.selfcontained.SelfContainedPluginAlt;
@@ -118,19 +115,12 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
             String inputPath = wco.getDssFilename();//THIS IS A DSS FILE!
             String outputPath = changeExtensionAndName(wco.getDssFilename(),"db", "_sqlite");//need to change the name too "
             //this should only happen once per lifecycle at the end...
-            fr.addMessage("is " + wco.getEventList().size() + " equal to " + wco.getCurrentEventNumber() + "?");
-            
-            if(wco.getEventList().size()== wco.getCurrentEventNumber()){
-                //success! do it now (or wait and nothing bad will happen either...)
-            }else{
-                fr.addMessage("This is not the last event " + wco.getCurrentEventNumber());
+            //only perform conversion on final event - how does this work with "Run Event" logic?
+            if(wco.getEventList().size()!= wco.getCurrentEventNumber()){
                 return returnValue;
             }
-            if(wco.isFrmCompute()){
-                //stochastic
-                //in this case, the compute should keep continuing... 
-                
-            }else{
+            //must be an FRA compute to convert a lifecycle DSS file. 
+            if(!wco.isFrmCompute()){
                 fr.addMessage("Asked to run in a non FRA compute failing disgracefully...");
                 return false;
             }
@@ -188,7 +178,7 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
 
             return returnValue;
         }
-        //theoretically, this could mean it is a CWMS compute. 
+        //theoretically, this should mean it is a CWMS compute. 
         return false;
     }
     private String changeExtensionAndName(String f, String newExtension, String additionalNameText) {
