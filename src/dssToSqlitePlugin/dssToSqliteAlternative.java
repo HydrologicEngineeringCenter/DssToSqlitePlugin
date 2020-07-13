@@ -5,17 +5,7 @@
  */
 
 package dssToSqlitePlugin;
-import com.rma.io.DssFileManagerImpl;
 import com.rma.io.RmaFile;
-import hec.heclib.dss.CondensedReference;
-import hec.heclib.dss.DSSPathname;
-import hec.heclib.dss.HecDSSDataAttributes;
-import hec.heclib.util.HecTime;
-import hec.io.DSSIdentifier;
-import hec.io.TimeSeriesContainer;
-import hec.timeseries.BlockedRegularIntervalTimeSeries;
-import hec.timeseries.TimeSeries;
-import hec.timeseries.TimeSeriesIdentifier;
 import hec2.model.DataLocation;
 import hec2.plugin.model.ComputeOptions;
 import hec2.plugin.selfcontained.SelfContainedPluginAlt;
@@ -24,11 +14,6 @@ import java.util.List;
 import org.jdom.Document;
 import org.jdom.Element;
 import hec2.wat.client.WatFrame;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 /**
  *
  * @author WatPowerUser
@@ -113,7 +98,7 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
             hec2.wat.model.ComputeOptions wco = (hec2.wat.model.ComputeOptions)_computeOptions;
             WatFrame fr = hec2.wat.WAT.getWatFrame();
             String inputPath = wco.getDssFilename();//THIS IS A DSS FILE!
-            String outputPath = changeExtensionAndName(wco.getDssFilename(),"db", "_sqlite");//need to change the name too "
+            String outputPath = convertDssToSqlite.changeExtensionAndName(wco.getDssFilename(),"db", "_sqlite");
             //this should only happen once per lifecycle at the end...
             //only perform conversion on final event - how does this work with "Run Event" logic?
             if(wco.getEventList().size()!= wco.getCurrentEventNumber()){
@@ -129,11 +114,7 @@ public class dssToSqliteAlternative extends SelfContainedPluginAlt{
         //theoretically, this should mean it is a CWMS compute. 
         return false;
     }
-    private String changeExtensionAndName(String f, String newExtension, String additionalNameText) {
-        int i = f.lastIndexOf('.');
-        String oldPathandName = f.substring(0,i);
-        return oldPathandName + additionalNameText + '.' + newExtension;
-    }
+
     @Override
     public boolean cancelCompute() {
         return false;

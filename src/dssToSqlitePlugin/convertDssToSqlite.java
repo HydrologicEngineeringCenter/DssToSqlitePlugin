@@ -79,4 +79,9 @@ public class convertDssToSqlite {
         }
         return returnValue;
     }
+    public static String changeExtensionAndName(String f, String newExtension, String additionalNameText) {
+        int i = f.lastIndexOf('.');
+        String oldPathandName = f.substring(0,i);
+        return oldPathandName + additionalNameText + '.' + newExtension;
+    }
 }
